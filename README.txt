@@ -1,0 +1,1 @@
+This program requires pretrained word embeddings. The trained data text file is too large to upload to the repo.
