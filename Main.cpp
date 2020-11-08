@@ -94,7 +94,7 @@ array<float, 200> find_vector_for_word(string word)
 int main()
 {
     const int pretrained_data_vector_size = 200;
-    string word = "guard";
+    string word = "guard"; // input word
     array<float, pretrained_data_vector_size> word_vector = find_vector_for_word(word);
 
     string most_relevant_word;
@@ -119,7 +119,7 @@ int main()
     float lowest_score;
 
     // loading file
-    ifstream inFile("../TFK_Other_Files/word_embeddings_200.txt");
+    ifstream inFile("word_embeddings_200.txt");
     string line;
 
     string temp_number_string;
