@@ -6,6 +6,8 @@
 #include <math.h>
 #include <array>
 #include <map>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -93,21 +95,25 @@ array<float, 200> find_vector_for_word(string word)
 
 int main()
 {
+    // input data
     const int pretrained_data_vector_size = 200;
-    string word = "guard"; // input word
+    string word = "travel"; // input word
     array<float, pretrained_data_vector_size> word_vector = find_vector_for_word(word);
+    vector<string> blacklisted_words = {"travelling", "traveling"};
 
-    string most_relevant_word;
-    array<float, pretrained_data_vector_size> most_relevant_word_vector;
-
+    // variables for finding similar words
     string temp_word;
     array<float, pretrained_data_vector_size> temp_word_vector;
-
     string temp_string;
     float best_score = 0.0;
     float temp_score = 0.0;
+    int lowest_score_index;
+    float lowest_score;
+    string temp_number_string;
+    int j = 0;
+    int temp_number_int;
 
-    // introduce a list of the most relevant words
+    // returned data
     const int relevant_word_list_length = 5;
     Relevant_word relevant_words[relevant_word_list_length];
     for (int i = 0; i < relevant_word_list_length; i++)
@@ -115,16 +121,10 @@ int main()
         relevant_words[i].score = 0.0;
         relevant_words[i].word = "";
     }
-    int lowest_score_index;
-    float lowest_score;
 
     // loading file
     ifstream inFile("word_embeddings_200.txt");
     string line;
-
-    string temp_number_string;
-    int j = 0;
-    int temp_number_int;
 
     auto t1 = std::chrono::high_resolution_clock::now();
     while (getline(inFile, line))
@@ -157,35 +157,37 @@ int main()
             temp_word_vector[j - 1] = stof(temp_string);
         }
 
-        lowest_score_index = (relevant_words[0].word == temp_word || relevant_words[0].word == word) ? 1 : 0;
-        lowest_score = relevant_words[lowest_score_index].score;
-
-        for (int i = ((lowest_score_index == 0) ? 1 : 2); i < relevant_word_list_length; i++) // finding the lowest score in the list
+        if (find(blacklisted_words.begin(), blacklisted_words.end(), temp_word) == blacklisted_words.end() && temp_word != word)
         {
-            if (relevant_words[i].score < lowest_score && relevant_words[i].word != temp_word)
+            lowest_score_index = (relevant_words[0].word == temp_word || relevant_words[0].word == word) ? 1 : 0;
+            lowest_score = relevant_words[lowest_score_index].score;
+
+            for (int i = ((lowest_score_index == 0) ? 1 : 2); i < relevant_word_list_length; i++) // finding the lowest score in the list
             {
-                // cout << lowest_score_index << "\n";
-                lowest_score_index = i;
-                lowest_score = relevant_words[i].score;
+                if (relevant_words[i].score < lowest_score && relevant_words[i].word != temp_word)
+                {
+                    lowest_score_index = i;
+                    lowest_score = relevant_words[i].score;
+                }
             }
-        }
 
-        temp_score = calculate_similarity_score(word_vector, temp_word_vector);
+            temp_score = calculate_similarity_score(word_vector, temp_word_vector);
 
-        if (temp_score > relevant_words[lowest_score_index].score && temp_word != word)
-        {
-            relevant_words[lowest_score_index].score = temp_score;
-            relevant_words[lowest_score_index].word = temp_word;
-            relevant_words[lowest_score_index].vector = temp_word_vector;
+            if (temp_score > relevant_words[lowest_score_index].score)
+            {
+                relevant_words[lowest_score_index].score = temp_score;
+                relevant_words[lowest_score_index].word = temp_word;
+                relevant_words[lowest_score_index].vector = temp_word_vector;
+            }
         }
     }
 
+    // measuring run time
     auto t2 = std::chrono::high_resolution_clock::now();
-
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-
     std::cout << "Duration: " << duration / 1000000 << " seconds\n"; // print out the time it took to go over all the words
 
+    // print the "returned" words
     cout << "The " << relevant_word_list_length << " most similar word to '" << word << "' are:\n";
     for (int i = 0; i < relevant_word_list_length; i++)
     {
