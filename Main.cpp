@@ -15,11 +15,11 @@ class Relevant_word
 {
 public:
     float score = 0.0;
-    array<float, 200> vector;
+    array<float, 50> vector;
     string word = "";
 };
 
-float calculate_similarity_score(array<float, 200> a, array<float, 200> b)
+float calculate_similarity_score(array<float, 50> a, array<float, 50> b)
 {
 
     int array_length = sizeof(a) / sizeof(a[0]);
@@ -35,13 +35,13 @@ float calculate_similarity_score(array<float, 200> a, array<float, 200> b)
     // return dot;
 }
 
-array<float, 200> find_vector_for_word(string word)
+array<float, 50> find_vector_for_word(string word)
 {
     string temp_word;
-    array<float, 200> temp_word_vector;
+    array<float, 50> temp_word_vector;
 
     // loading file
-    ifstream inFile("../TFK_Other_Files/word_embeddings_200.txt");
+    ifstream inFile("temp.txt");
     string line;
 
     string temp_string;
@@ -93,11 +93,36 @@ array<float, 200> find_vector_for_word(string word)
     return {};
 }
 
+// https://stackoverflow.com/questions/59299107/how-to-delete-a-specific-line-in-a-text-file-in-c
+void DeleteLine()
+{
+    string deleteline;
+    string line;
+    string filename = "word_embeddings_50.txt";
+
+    ifstream fin;
+    fin.open(filename);
+    ofstream temp;
+    temp.open("temp.txt");
+
+    while (getline(fin, line))
+    {
+        std::string id(line.begin(), line.begin() + line.find(" "));
+        if ((rand() % 100) <= 56)
+            temp << line << endl;
+    }
+
+    temp.close();
+    fin.close();
+}
+
 int main()
 {
+    // DeleteLine();
+    // return 0;
     // input data
-    const int pretrained_data_vector_size = 200;
-    string word = "travel"; // input word
+    const int pretrained_data_vector_size = 50;
+    string word = "vancouver"; // input word
     array<float, pretrained_data_vector_size> word_vector = find_vector_for_word(word);
     vector<string> blacklisted_words = {"travelling", "traveling"};
 
@@ -122,11 +147,14 @@ int main()
         relevant_words[i].word = "";
     }
 
-    // loading file
-    ifstream inFile("word_embeddings_200.txt");
-    string line;
-
     auto t1 = std::chrono::high_resolution_clock::now();
+
+    // loading file
+    ifstream inFile("temp.txt");
+    string line;
+    getline(inFile, line);
+    // cout << line;
+
     while (getline(inFile, line))
     {
         j = 0;
